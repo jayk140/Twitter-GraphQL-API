@@ -43,16 +43,16 @@ const UsersService = {
         return knex.select('*').from('users')
     },
 
-    getById(id) {
-        return knex.from('users').select('*').where('id', id).first()
+    getById(args) {
+        return knex.from('users').select('*').where('id', args.id).first()
     },
 
-    getUserWithEmail(email) {
-        return knex.from('users').select('*').where('email', email).first()
+    getByEmail(args) {
+        return knex.from('users').select('*').where('email', args.email).first()
     }
 
-    loginUser(email, password) {
-        UsersService.getUserWithEmail(email)
+    loginUser(args) {
+        UsersService.getUserWithEmail(args.email)
             .then(user => {
                 if (!user) {
                     return res.status(400).json({
@@ -60,7 +60,7 @@ const UsersService = {
                     })
                 }
 
-            return UsersService.comparePasswords(password, user.password)
+            return UsersService.comparePasswords(args.password, user.password)
                 .then(compareMatch => {
                     if (!compareMatch) {
                         return res.status(400).json({
@@ -74,20 +74,17 @@ const UsersService = {
             .catch(next)
     }
 
-    insertUser(user) {
-        UsersService.hasUserWithEmail(user.email)
+    createUser(args) {
+        UsersService.hasUserWithEmail(args.email)
             .then(hasUserWithEmail => {
                 if (hasUserWithEmail)
                     return res.status(400).json({ error: 'Email already taken' })
-                return UsersService.hashPassword(user.password)
+                return UsersService.hashPassword(args.password)
                     .then(hashedPassword => {
-                        const {email, full_name, phone, city} = user
                         const newUser = {
-                            email,
+                            args.email,
                             password: hashedPassword,
-                            full_name,
-                            phone,
-                            city
+                            args.full_name
                         }
                     return knex.insert(newUser)
                             .into('users')
@@ -97,16 +94,16 @@ const UsersService = {
                             })
     },
     
-    deleteUser(id) {
+    deleteUser(args) {
         return knex('users')
-        .where({ id })
+        .where({ args.id })
         .delete()
     },
     
-    updateUser(id, newUserFields) {
+    updateUser(args) {
         return knex('users')
-        .where({ id })
-        .update(newBookmarkFields)
+        .where({ args.id })
+        .update(args.newBookmarkFields)
     },
 }
 
@@ -114,10 +111,14 @@ const MessagesService = {
   getAllMessages() {
     return knex.select('*').from('messages')
   },
-  getById(id) {
-    return knex.from('messages').select('*').where('id', id).first()
+  getById(args) {
+    return knex.from('messages').select('*').where('id', args.id).first()
   },
-  insertMessage(newMessage) {
+  getByUser(args) {
+    return knex.from('messages').select('*').where('user', args.user_id).first()
+  }
+  createMessage(args) {
+    const newMessage = {args.content, args.user}
     return knex
       .insert(newMessage)
       .into('messages')
@@ -126,9 +127,9 @@ const MessagesService = {
         return rows[0]
       })
   },
-  deleteMessage(id) {
+  deleteMessage(args) {
     return knex('messages')
-      .where({ id })
+      .where({ args.id })
       .delete()
   },
   updateMessage(id, newMessageFields) {
