@@ -22,11 +22,11 @@ const { UsersService, MessagesService } = require('./src/knex-service')
 
 
 
-var schema = buildSchema('
+var schema = buildSchema(`
     type Query {
         userById(id: Int!): User
         userByEmail(email: String!): User
-        getMessagesByUser(user: Int!): [Messages]
+        getMessagesByUser(user: Int!): [Message]
     },
 
     type Mutation {
@@ -43,14 +43,14 @@ var schema = buildSchema('
         full_name: String
         phone: String
         city: String
-    }
+    },
 
     type Message {
         id: Int
         content: String
         user: Int
     }
-');
+`);
 
 
 var root = {
@@ -58,8 +58,8 @@ var root = {
     userById: UsersService.getById,
     userByEmail: UsersService.getByEmail,
     getMessagesByUser: MessagesService.getByUser,
-    createUser: UsersService.createUser
-    loginUser: UsersService.loginUser
+    createUser: UsersService.createUser,
+    loginUser: UsersService.loginUser,
     createMessage: MessagesService.createMessage
 
 };

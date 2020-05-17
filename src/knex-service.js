@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken')
 const { DB_URL } = require('../config')
 
 
-const knex = knex({
+const db = knex({
   client: 'pg',
   connection: DB_URL,
 })
@@ -12,7 +12,7 @@ const knex = knex({
 const UsersService = {
     
     hasUserWithEmail(email) {
-      return knex('users')
+      return db('users')
         .where({ email })
         .first()
         .then(user => !!user)
@@ -40,16 +40,16 @@ const UsersService = {
     },
 
     getAllUsers() {
-        return knex.select('*').from('users')
+        return db.select('*').from('users')
     },
 
     getById(args) {
-        return knex.from('users').select('*').where('id', args.id).first()
+        return db.from('users').select('*').where('id', args.id).first()
     },
 
     getByEmail(args) {
-        return knex.from('users').select('*').where('email', args.email).first()
-    }
+        return db.from('users').select('*').where('email', args.email).first()
+    },
 
     loginUser(args) {
         UsersService.getUserWithEmail(args.email)
@@ -72,7 +72,8 @@ const UsersService = {
                     res.json({authToken: UsersService.createJwt(user.email, payload)})
                 })
             .catch(next)
-    }
+        });
+    },
 
     createUser(args) {
         UsersService.hasUserWithEmail(args.email)
@@ -82,9 +83,9 @@ const UsersService = {
                 return UsersService.hashPassword(args.password)
                     .then(hashedPassword => {
                         const newUser = {
-                            args.email,
+                            email: args.email,
                             password: hashedPassword,
-                            args.full_name
+                            full_name: args.full_name
                         }
                     return knex.insert(newUser)
                             .into('users')
@@ -92,34 +93,40 @@ const UsersService = {
                             .then(rows => {
                                 return rows[0]
                             })
+                    });
+                });
     },
     
     deleteUser(args) {
-        return knex('users')
-        .where({ args.id })
+        return db('users')
+        .where({ id: args.id })
         .delete()
     },
     
     updateUser(args) {
-        return knex('users')
-        .where({ args.id })
+        return db('users')
+        .where({ id: args.id })
         .update(args.newBookmarkFields)
-    },
+    }
 }
 
 const MessagesService = {
+
   getAllMessages() {
-    return knex.select('*').from('messages')
+    return db.select('*').from('messages')
   },
+
   getById(args) {
-    return knex.from('messages').select('*').where('id', args.id).first()
+    return db.from('messages').select('*').where('id', args.id).first()
   },
+
   getByUser(args) {
-    return knex.from('messages').select('*').where('user', args.user_id).first()
-  }
+    return db.from('messages').select('*').where('user', args.user_id).first()
+  },
+
   createMessage(args) {
-    const newMessage = {args.content, args.user}
-    return knex
+    const newMessage = {content: args.content, user: args.user}
+    return db
       .insert(newMessage)
       .into('messages')
       .returning('*')
@@ -127,16 +134,18 @@ const MessagesService = {
         return rows[0]
       })
   },
+
   deleteMessage(args) {
-    return knex('messages')
-      .where({ args.id })
+    return db('messages')
+      .where({ id: args.id })
       .delete()
   },
+
   updateMessage(id, newMessageFields) {
-    return knex('messages')
+    return db('messages')
       .where({ id })
       .update(newMessageFields)
-  },
+  }
 }
 
 module.exports = {UsersService, MessagesService}

@@ -18,6 +18,8 @@
     "graphql": "^15.0.0",
     "helmet": "^3.22.0",
     "jsonwebtoken": "^8.5.1",
+    "knex": "^0.21.1",
+    "logger": "0.0.1",
     "morgan": "^1.10.0"
   }
 }
